@@ -1,0 +1,99 @@
+﻿@model CourseMaterial
+@{
+    ViewData["Title"] = "Upload Course Material";
+    var preselectedCourseId = ViewBag.PreselectedCourseId as int?;
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-upload"></i> Upload Course Material
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="CourseId" class="form-label fw-bold">Course *</label>
+                            <select asp-for="CourseId" class="form-select" required>
+                                <option value="">-- Select Course --</option>
+                                @if (ViewBag.Courses != null)
+                                {
+                                    foreach (var course in ViewBag.Courses as List<Course>)
+                                    {
+                                        <option value="@course.CourseId" selected="@(course.CourseId == (preselectedCourseId ?? Model.CourseId))">
+                                            @course.CourseCode - @course.CourseName
+                                        </option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label fw-bold">Material Title *</label>
+                            <input asp-for="Title" class="form-control" placeholder="e.g., Lecture 1 - Introduction to Programming" required maxlength="200" />
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                            <small class="text-muted">Give your material a descriptive title</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label fw-bold">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Brief description of the material (optional)" maxlength="1000"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="file" class="form-label fw-bold">Upload File *</label>
+                            <input type="file" class="form-control" id="file" name="file"
+                                   accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.zip,.rar" required />
+                            <small class="text-muted d-block mt-1">
+                                <i class="bi bi-info-circle"></i>
+                                Accepted formats: PDF, Word, PowerPoint, Excel, Text, ZIP, RAR
+                            </small>
+                            <small class="text-muted d-block">
+                                <i class="bi bi-info-circle"></i>
+                                Maximum file size: 50 MB
+                            </small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-lightbulb"></i>
+                            <strong>Tip:</strong> Students enrolled in this course will be able to download this material.
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-upload"></i> Upload Material
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // Show file name after selection
+        document.getElementById('file').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                const fileSize = (e.target.files[0].size / 1024 / 1024).toFixed(2);
+                console.log('Selected file: ' + fileName + ' (' + fileSize + ' MB)');
+            }
+        });
+    </script>
+}

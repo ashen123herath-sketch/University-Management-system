@@ -1,0 +1,103 @@
+@model IEnumerable<Assignment>
+@{
+    ViewData["Title"] = "Assignments";
+    var userRole = Context.Session.GetString("UserRole");
+    bool canCreate = userRole == "Lecturer" || userRole == "Administrator";
+}
+
+<div class="container py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold"><i class="bi bi-file-earmark-text"></i> Assignments</h2>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            @if (userRole == "Administrator")
+            {
+                <a asp-action="AllSubmissions" class="btn btn-outline-info">
+                    <i class="bi bi-file-earmark-check"></i> View All Submissions
+                </a>
+            }
+            @if (canCreate)
+            {
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create Assignment
+                </a>
+            }
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-3">
+            @foreach (var assignment in Model)
+            {
+                var isPastDue = assignment.DueDate < DateTime.Now;
+                var submissionCount = assignment.Submissions?.Count ?? 0;
+                var gradedCount = assignment.Submissions?.Count(s => s.MarksObtained.HasValue) ?? 0;
+
+                <div class="col-12">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-8">
+                                    <h5 class="mb-1">@assignment.Title</h5>
+                                    <p class="text-muted small mb-1">
+                                        <i class="bi bi-book"></i> @assignment.Course?.CourseName
+                                    </p>
+                                    <p class="small mb-0">
+                                        <i class="bi bi-clock"></i> Due: @assignment.DueDate.ToString("MMM dd, yyyy h:mm tt")
+                                        <span class="badge @(isPastDue ? "bg-danger" : "bg-success")">
+                                            @(isPastDue ? "Past Due" : "Active")
+                                        </span>
+                                        @if (!string.IsNullOrEmpty(assignment.FilePath))
+                                        {
+                                            <span class="badge bg-info ms-1">
+                                                <i class="bi bi-paperclip"></i> File Attached
+                                            </span>
+                                        }
+                                    </p>
+                                    @if (canCreate && assignment.Submissions != null)
+                                    {
+                                        <p class="small mt-1 mb-0 text-muted">
+                                            <i class="bi bi-people"></i> @submissionCount submission@(submissionCount != 1 ? "s" : "")
+                                            &bull; @gradedCount graded
+                                        </p>
+                                    }
+                                </div>
+                                <div class="col-md-4 text-md-end d-flex gap-2 justify-content-md-end flex-wrap">
+                                    <a asp-action="Details" asp-route-id="@assignment.AssignmentId"
+                                       class="btn btn-outline-info">View Details</a>
+                                    @if (userRole == "Student" && !isPastDue)
+                                    {
+                                        <a asp-action="Submit" asp-route-id="@assignment.AssignmentId"
+                                           class="btn btn-primary">Submit</a>
+                                    }
+                                    @if (canCreate)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@assignment.AssignmentId"
+                                           class="btn btn-outline-warning">Edit</a>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                <p class="text-muted mt-3">No assignments available.</p>
+                @if (canCreate)
+                {
+                    <a asp-action="Create" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle"></i> Create First Assignment
+                    </a>
+                }
+            </div>
+        </div>
+    }
+</div>

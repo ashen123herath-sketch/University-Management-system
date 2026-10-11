@@ -1,0 +1,418 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Administrator Dashboard";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">
+                <i class="bi bi-speedometer2"></i> Administrator Dashboard
+            </h2>
+            <p class="text-muted">System Overview & Analytics</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-lg-2">
+            <div class="card stat-card primary h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill text-primary" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalUsers</h3>
+                    <p class="text-muted small mb-0">Total Users</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="card stat-card success h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-mortarboard-fill text-success" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalStudents</h3>
+                    <p class="text-muted small mb-0">Students</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="card stat-card info h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-person-badge-fill text-info" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalLecturers</h3>
+                    <p class="text-muted small mb-0">Lecturers</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="card stat-card warning h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-book-fill text-warning" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalCourses</h3>
+                    <p class="text-muted small mb-0">Courses</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="card stat-card danger h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-calendar-check-fill text-danger" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 mb-0">@Model.ActiveEnrollments</h3>
+                    <p class="text-muted small mb-0">Enrollments</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-lg-2">
+            <div class="card stat-card secondary h-100 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-text-fill text-secondary" style="font-size: 2.5rem;"></i>
+                    <h3 class="mt-2 mb-0">@Model.TotalAssignments</h3>
+                    <p class="text-muted small mb-0">Assignments</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Course Popularity Chart -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-bar-chart-fill"></i> Top 5 Popular Courses
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.CoursePopularity != null && Model.CoursePopularity.Any())
+                    {
+                        <div class="chart-container">
+                            @foreach (var course in Model.CoursePopularity)
+                            {
+                                var maxEnrollments = Model.CoursePopularity.Values.Max();
+                                var percentage = maxEnrollments > 0 ? (course.Value * 100.0 / maxEnrollments) : 0;
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="fw-bold text-truncate" style="max-width: 70%;">@course.Key</small>
+                                        <small class="text-muted">@course.Value students</small>
+                                    </div>
+                                    <div class="progress" style="height: 25px;">
+                                        <div class="progress-bar bg-primary" style="width: @percentage%" 
+                                             role="progressbar" aria-valuenow="@course.Value" aria-valuemin="0" aria-valuemax="@maxEnrollments">
+                                            @course.Value
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-controller="Report" asp-action="CoursePopularity" class="btn btn-outline-primary">
+                                View Full Report <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-bar-chart" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="text-muted mt-3">No enrollment data available yet.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Enrollments by Department -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-pie-chart-fill"></i> Enrollments by Department
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.EnrollmentsByDepartment != null && Model.EnrollmentsByDepartment.Any())
+                    {
+                        <div class="chart-container">
+                            @{
+                                var colors = new[] { "primary", "success", "info", "warning", "danger", "secondary" };
+                                var index = 0;
+                            }
+                            @foreach (var dept in Model.EnrollmentsByDepartment)
+                            {
+                                var totalEnrollments = Model.EnrollmentsByDepartment.Values.Sum();
+                                var percentage = totalEnrollments > 0 ? (dept.Value * 100.0 / totalEnrollments) : 0;
+                                
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <small class="fw-bold">@dept.Key</small>
+                                        <small class="text-muted">@dept.Value (@percentage.ToString("F1")%)</small>
+                                    </div>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar bg-@colors[index % colors.Length]" 
+                                             style="width: @percentage%" 
+                                             role="progressbar">
+                                        </div>
+                                    </div>
+                                </div>
+                                index++;
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-controller="Report" asp-action="EnrollmentTrends" class="btn btn-outline-primary">
+                                View Trends <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-pie-chart" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="text-muted mt-3">No department data available yet.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <!-- Recent Courses -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-book"></i> Recently Added Courses
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentCourses != null && Model.RecentCourses.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Code</th>
+                                        <th>Lecturer</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var course in Model.RecentCourses)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@course.CourseName</strong><br>
+                                                <small class="text-muted">@course.Department</small>
+                                            </td>
+                                            <td>@course.CourseCode</td>
+                                            <td>
+                                                <small>@(course.Lecturer?.FullName ?? "Not Assigned")</small>
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Course" asp-action="Details" asp-route-id="@course.CourseId" 
+                                                   class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-controller="Course" asp-action="Index" class="btn btn-outline-primary">
+                                View All Courses <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="text-muted mt-3">No courses created yet.</p>
+                            <a asp-controller="Course" asp-action="Create" class="btn btn-primary">
+                                <i class="bi bi-plus"></i> Create Course
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Enrollments -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-person-plus"></i> Recent Enrollments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentEnrollments != null && Model.RecentEnrollments.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Course</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var enrollment in Model.RecentEnrollments)
+                                    {
+                                        <tr>
+                                            <td>@enrollment.Student?.FullName</td>
+                                            <td>
+                                                <small>@enrollment.Course?.CourseName</small>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @enrollment.EnrollmentDate.ToString("MMM dd")
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge status-@enrollment.Status.ToLower()">
+                                                    @enrollment.Status
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="text-muted mt-3">No recent enrollments.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm bg-light">
+                <div class="card-body py-4">
+                    <h5 class="mb-3 text-center">Admin Actions</h5>
+                    <div class="row g-3">
+                        <!-- User Management -->
+                        <div class="col-12">
+                            <p class="fw-bold text-muted small mb-2 text-uppercase">User Management</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-controller="UserManagement" asp-action="Index" asp-route-role="Student"
+                                   class="btn btn-primary">
+                                    <i class="bi bi-mortarboard"></i> Manage Students
+                                </a>
+                                <a asp-controller="UserManagement" asp-action="Create" asp-route-role="Student"
+                                   class="btn btn-outline-primary">
+                                    <i class="bi bi-person-plus"></i> Add Student
+                                </a>
+                                <a asp-controller="UserManagement" asp-action="Index" asp-route-role="Lecturer"
+                                   class="btn btn-secondary">
+                                    <i class="bi bi-person-badge"></i> Manage Lecturers
+                                </a>
+                                <a asp-controller="UserManagement" asp-action="Create" asp-route-role="Lecturer"
+                                   class="btn btn-outline-secondary">
+                                    <i class="bi bi-person-plus"></i> Add Lecturer
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Courses -->
+                        <div class="col-12">
+                            <p class="fw-bold text-muted small mb-2 text-uppercase">Courses</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-controller="Course" asp-action="Create" class="btn btn-primary">
+                                    <i class="bi bi-plus-circle"></i> Create Course
+                                </a>
+                                <a asp-controller="Course" asp-action="Index" class="btn btn-success">
+                                    <i class="bi bi-list-ul"></i> Manage Courses
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Course Materials -->
+                        <div class="col-12">
+                            <p class="fw-bold text-muted small mb-2 text-uppercase">Course Materials</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-controller="CourseMaterial" asp-action="Create" class="btn btn-primary">
+                                    <i class="bi bi-upload"></i> Upload Course Material
+                                </a>
+                                <a asp-controller="CourseMaterial" asp-action="Index" class="btn btn-outline-primary">
+                                    <i class="bi bi-file-earmark-text"></i> View All Materials
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Assignments -->
+                        <div class="col-12">
+                            <p class="fw-bold text-muted small mb-2 text-uppercase">Assignments</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-controller="Assignment" asp-action="Create" class="btn btn-success">
+                                    <i class="bi bi-plus-circle"></i> Create Assignment
+                                </a>
+                                <a asp-controller="Assignment" asp-action="Index" class="btn btn-outline-success">
+                                    <i class="bi bi-file-earmark-text"></i> View All Assignments
+                                </a>
+                                <a asp-controller="Assignment" asp-action="AllSubmissions" class="btn btn-info text-white">
+                                    <i class="bi bi-file-earmark-check"></i> View All Submissions
+                                </a>
+                            </div>
+                        </div>
+                        <!-- Reports -->
+                        <div class="col-12">
+                            <p class="fw-bold text-muted small mb-2 text-uppercase">Reports</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a asp-controller="Report" asp-action="Index" class="btn btn-warning text-white">
+                                    <i class="bi bi-graph-up"></i> View Reports
+                                </a>
+                                <a asp-controller="Report" asp-action="LecturerWorkload" class="btn btn-outline-warning">
+                                    <i class="bi bi-people"></i> Lecturer Workload
+                                </a>
+                                <a asp-controller="Report" asp-action="EnrollmentTrends" class="btn btn-secondary text-white">
+                                    <i class="bi bi-bar-chart"></i> Enrollment Trends
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Section -->
+    @* <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-envelope"></i> Messages
+                        </h5>
+                        <div>
+                            <a asp-controller="Message" asp-action="Compose" class="btn btn-sm btn-primary me-1">
+                                <i class="bi bi-pencil"></i> Compose
+                            </a>
+                            <a asp-controller="Message" asp-action="Index" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-inbox"></i> Inbox
+                            </a>
+                            <a asp-controller="Message" asp-action="Sent" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-send"></i> Sent Messages
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> *@
+</div>

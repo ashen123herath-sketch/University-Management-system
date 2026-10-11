@@ -1,0 +1,72 @@
+﻿@{
+    ViewData["Title"] = "Add Student to Course";
+    var course = ViewBag.Course as Course;
+    var students = ViewBag.Students as List<User>;
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold mb-4"><i class="bi bi-person-plus"></i> Add Student to Course</h2>
+            
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5>@course.CourseName</h5>
+                    <p class="text-muted mb-0">@course.CourseCode | @course.Department</p>
+                </div>
+            </div>
+            
+            @if (students != null && students.Any())
+            {
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <form asp-action="AddStudent" method="post">
+                            <input type="hidden" name="courseId" value="@course.CourseId" />
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Select Student *</label>
+                                <select name="studentId" class="form-select" required>
+                                    <option value="">-- Choose a student --</option>
+                                    @foreach (var student in students)
+                                    {
+                                        <option value="@student.UserId">
+                                            @student.FullName - @student.Email
+                                            @if (!string.IsNullOrEmpty(student.Department))
+                                            {
+                                                <text> (@student.Department)</text>
+                                            }
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Note:</strong> Only students who are not currently enrolled in this course are shown.
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-plus-circle"></i> Add Student
+                                </button>
+                                <a asp-action="CourseStudents" asp-route-id="@course.CourseId" class="btn btn-outline-secondary">
+                                    <i class="bi bi-x-circle"></i> Cancel
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <strong>No available students</strong> - All students are already enrolled in this course or no students exist in the system.
+                </div>
+                <a asp-action="CourseStudents" asp-route-id="@course.CourseId" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Course Students
+                </a>
+            }
+        </div>
+    </div>
+</div>

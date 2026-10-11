@@ -1,0 +1,62 @@
+@model IEnumerable<Enrollment>
+@{
+    ViewData["Title"] = "My Courses";
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-book"></i> My Enrolled Courses</h2>
+    
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var enrollment in Model)
+            {
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">@enrollment.Course?.CourseName</h6>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted small mb-2">
+                                <strong>Code:</strong> @enrollment.Course?.CourseCode<br>
+                                <strong>Lecturer:</strong> @enrollment.Course?.Lecturer?.FullName<br>
+                                <strong>Credits:</strong> @enrollment.Course?.Credits
+                            </p>
+                            
+                            <div class="mb-2">
+                                <span class="badge status-@enrollment.Status.ToLower()">@enrollment.Status</span>
+                                @if (enrollment.FinalGrade.HasValue)
+                                {
+                                    <span class="badge bg-success">Grade: @enrollment.FinalGrade.Value.ToString("F1")%</span>
+                                }
+                            </div>
+                            
+                            <small class="text-muted">
+                                Enrolled: @enrollment.EnrollmentDate.ToString("MMM dd, yyyy")
+                            </small>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <a asp-controller="Course" asp-action="Details" asp-route-id="@enrollment.CourseId" 
+                               class="btn btn-sm btn-outline-primary w-100">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h4 class="mt-3">Not enrolled in any courses</h4>
+                <p class="text-muted">Browse available courses to get started</p>
+                <a asp-controller="Enrollment" asp-action="Browse" class="btn btn-primary mt-2">
+                    <i class="bi bi-search"></i> Browse Courses
+                </a>
+            </div>
+        </div>
+    }
+</div>

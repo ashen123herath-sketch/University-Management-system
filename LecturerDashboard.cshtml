@@ -1,0 +1,299 @@
+@model LecturerDashboardViewModel
+@{
+    ViewData["Title"] = "Lecturer Dashboard";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">
+                <i class="bi bi-speedometer2"></i> Welcome, @Model.Lecturer?.FullName!
+            </h2>
+            <p class="text-muted">Teaching Dashboard - @Model.Lecturer?.Department Department</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card primary h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="dashboard-label mb-1">Teaching Courses</p>
+                            <h3 class="dashboard-stat mb-0">@Model.TotalCourses</h3>
+                        </div>
+                        <i class="bi bi-book-fill text-primary" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card success h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="dashboard-label mb-1">Total Students</p>
+                            <h3 class="dashboard-stat mb-0" style="color: #198754;">@Model.TotalStudents</h3>
+                        </div>
+                        <i class="bi bi-people-fill text-success" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card warning h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="dashboard-label mb-1">Pending Grading</p>
+                            <h3 class="dashboard-stat mb-0" style="color: #ffc107;">@Model.PendingSubmissions</h3>
+                        </div>
+                        <i class="bi bi-file-earmark-check-fill text-warning" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card info h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="dashboard-label mb-1">Unread Messages</p>
+                            <h3 class="dashboard-stat mb-0" style="color: #0dcaf0;">@Model.UnreadMessages</h3>
+                        </div>
+                        <i class="bi bi-envelope-fill text-info" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Teaching Courses -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-book"></i> My Teaching Courses
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.TeachingCourses != null && Model.TeachingCourses.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var course in Model.TeachingCourses)
+                            {
+                                var enrollmentCount = course.Enrollments?.Count(e => e.Status == "Active") ?? 0;
+                                var maxStudents = course.MaxStudents;
+                                var percentageFull = maxStudents > 0 ? (enrollmentCount * 100.0 / maxStudents) : 0;
+                                
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1 fw-bold">@course.CourseName</h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-code-square"></i> @course.CourseCode | 
+                                                <i class="bi bi-building"></i> @course.Department
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-primary">@course.Credits Credits</span>
+                                    </div>
+                                    <div class="progress" style="height: 5px;">
+                                        <div class="progress-bar @(percentageFull >= 90 ? "bg-danger" : percentageFull >= 70 ? "bg-warning" : "bg-success")" 
+                                             style="width: @percentageFull%"></div>
+                                    </div>
+                                    <small class="text-muted">@enrollmentCount / @maxStudents students enrolled</small>
+                                    <div class="mt-2">
+                                        <a asp-controller="Course" asp-action="Details" asp-route-id="@course.CourseId" 
+                                           class="btn btn-sm btn-outline-primary me-1">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a asp-controller="Enrollment" asp-action="CourseStudents" asp-route-id="@course.CourseId" 
+                                           class="btn btn-sm btn-outline-info me-1">
+                                            <i class="bi bi-people"></i> Students
+                                        </a>
+                                        <a asp-controller="Assignment" asp-action="Create" asp-route-courseId="@course.CourseId" 
+                                           class="btn btn-sm btn-outline-success me-1">
+                                            <i class="bi bi-plus"></i> Assignment
+                                        </a>
+                                        <a asp-controller="CourseMaterial" asp-action="Create" asp-route-courseId="@course.CourseId" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-upload"></i> Material
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-controller="Course" asp-action="Index" class="btn btn-outline-primary">
+                                View All Courses <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="text-muted mt-3">No courses assigned yet.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Grading -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-file-earmark-check"></i> Pending Grading
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.PendingGrading != null && Model.PendingGrading.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var submission in Model.PendingGrading.Take(5))
+                            {
+                                var daysAgo = (DateTime.Now - submission.SubmissionDate).Days;
+                                var urgencyClass = daysAgo >= 7 ? "danger" : (daysAgo >= 3 ? "warning" : "info");
+                                
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">@submission.Student?.FullName</h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-file-text"></i> @submission.Assignment?.Title
+                                            </small>
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="bi bi-book"></i> @submission.Assignment?.Course?.CourseName
+                                            </small>
+                                            <div class="mt-1">
+                                                <small class="text-@urgencyClass">
+                                                    <i class="bi bi-clock"></i> 
+                                                    Submitted @daysAgo day@(daysAgo != 1 ? "s" : "") ago
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <a asp-controller="Assignment" asp-action="Grade" asp-route-id="@submission.SubmissionId" 
+                                           class="btn btn-sm btn-primary">
+                                            Grade
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-controller="Assignment" asp-action="Index" class="btn btn-outline-primary">
+                                View All Submissions <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-check-circle" style="font-size: 3rem; color: #198754;"></i>
+                            <p class="text-muted mt-3">All caught up! No pending grading.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Assignments -->
+    @if (Model.RecentAssignments != null && Model.RecentAssignments.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-calendar-event"></i> Recent Assignments
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Assignment</th>
+                                        <th>Course</th>
+                                        <th>Due Date</th>
+                                        <th>Max Marks</th>
+                                        <th>Submissions</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var assignment in Model.RecentAssignments.Take(5))
+                                    {
+                                        var submissionCount = assignment.Submissions?.Count ?? 0;
+                                        var gradedCount = assignment.Submissions?.Count(s => s.MarksObtained.HasValue) ?? 0;
+                                        
+                                        <tr>
+                                            <td>@assignment.Title</td>
+                                            <td>@assignment.Course?.CourseName</td>
+                                            <td>
+                                                <small class="@(assignment.DueDate < DateTime.Now ? "text-danger" : "text-muted")">
+                                                    @assignment.DueDate.ToString("MMM dd, yyyy")
+                                                </small>
+                                            </td>
+                                            <td>@assignment.MaxMarks</td>
+                                            <td>
+                                                <span class="badge bg-info">@submissionCount submitted</span>
+                                                <span class="badge bg-success">@gradedCount graded</span>
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Assignment" asp-action="Details" asp-route-id="@assignment.AssignmentId" 
+                                                   class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm bg-light">
+                <div class="card-body text-center py-4">
+                    <h5 class="mb-3">Quick Actions</h5>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a asp-controller="Course" asp-action="Index" class="btn btn-primary">
+                            <i class="bi bi-book"></i> My Courses
+                        </a>
+                        <a asp-controller="Assignment" asp-action="Create" class="btn btn-success">
+                            <i class="bi bi-plus-circle"></i> Create Assignment
+                        </a>
+                        <a asp-controller="CourseMaterial" asp-action="Create" class="btn btn-info text-white">
+                            <i class="bi bi-upload"></i> Upload Material
+                        </a>
+                        <a asp-controller="CourseMaterial" asp-action="Index" class="btn btn-outline-info">
+                            <i class="bi bi-file-earmark-text"></i> Course Materials
+                        </a>
+                        <a asp-controller="Report" asp-action="Index" class="btn btn-warning text-white">
+                            <i class="bi bi-graph-up"></i> View Reports
+                        </a>
+                        <a asp-controller="Message" asp-action="Compose" class="btn btn-secondary text-white">
+                            <i class="bi bi-envelope"></i> Send Message
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,141 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Welcome to UniManage</h1>
+                <p class="lead mb-4">
+                    Your comprehensive University Course Management System. Streamline course enrollment, 
+                    assignment management, and academic communication all in one place.
+                </p>
+                <div class="d-grid gap-2 d-md-flex">
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-light btn-lg px-4">
+                        <i class="bi bi-person-plus"></i> Get Started
+                    </a>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-box-arrow-in-right"></i> Login
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center mt-4 mt-lg-0">
+                <i class="bi bi-mortarboard-fill" style="font-size: 200px; opacity: 0.8;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row text-center mb-5">
+        <div class="col">
+            <h2 class="fw-bold mb-3">Why Choose UniManage?</h2>
+            <p class="text-muted">Everything you need for efficient academic management</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto" 
+                         style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-book fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Course Management</h5>
+                    <p class="text-muted">
+                        Browse, enroll, and manage your courses with ease. Track prerequisites and enrollment limits automatically.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3 mx-auto" 
+                         style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-file-earmark-text fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Assignment Tracking</h5>
+                    <p class="text-muted">
+                        Submit assignments online, track deadlines, and receive timely feedback from instructors.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-info bg-gradient text-white rounded-circle mb-3 mx-auto" 
+                         style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-graph-up fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Analytics & Reports</h5>
+                    <p class="text-muted">
+                        Comprehensive reporting tools for administrators and lecturers to track performance and trends.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-warning bg-gradient text-white rounded-circle mb-3 mx-auto" 
+                         style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-envelope fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Communication</h5>
+                    <p class="text-muted">
+                        Built-in messaging system for seamless communication between students, lecturers, and administrators.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-danger bg-gradient text-white rounded-circle mb-3 mx-auto" 
+                         style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-shield-check fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Secure & Reliable</h5>
+                    <p class="text-muted">
+                        Role-based access control ensures data security and privacy for all users.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-secondary bg-gradient text-white rounded-circle mb-3 mx-auto" 
+                         style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <i class="bi bi-speedometer2 fs-1"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">User-Friendly Interface</h5>
+                    <p class="text-muted">
+                        Modern, intuitive design that makes academic management simple and efficient.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-5 pt-5 border-top">
+        <div class="col-lg-8 mx-auto text-center">
+            <h2 class="fw-bold mb-4">Ready to Get Started?</h2>
+            <p class="lead text-muted mb-4">
+                Join thousands of students, lecturers, and administrators who trust UniManage for their academic management needs.
+            </p>
+            <a asp-controller="Account" asp-action="Register" class="btn btn-primary btn-lg px-5">
+                <i class="bi bi-person-plus"></i> Create Your Account
+            </a>
+        </div>
+    </div>
+</div>

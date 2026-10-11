@@ -1,0 +1,226 @@
+@model User
+@{
+    ViewData["Title"] = $"{Model.Role} Details";
+    var enrollments = ViewBag.Enrollments as List<Enrollment>;
+    var courses = ViewBag.Courses as List<Course>;
+}
+
+<div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-circle"></i> @Model.Role Profile
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <th width="140">Full Name:</th>
+                            <td>@Model.FullName</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td>@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <th>Phone:</th>
+                            <td>@(Model.PhoneNumber ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <th>Department:</th>
+                            <td>@(Model.Department ?? "—")</td>
+                        </tr>
+                        <tr>
+                            <th>Registered:</th>
+                            <td>@Model.RegisteredDate.ToString("MMM dd, yyyy")</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                @if (Model.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card-footer bg-white d-flex gap-2">
+                    <a asp-action="Edit" asp-route-id="@Model.UserId" class="btn btn-warning flex-fill">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    <form asp-action="ToggleActive" asp-route-id="@Model.UserId" method="post"
+                          onsubmit="return confirm('@(Model.IsActive ? "Deactivate" : "Activate") this @Model.Role.ToLower()?')">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn @(Model.IsActive ? "btn-outline-secondary" : "btn-outline-success")">
+                            <i class="bi bi-@(Model.IsActive ? "person-dash" : "person-check")"></i>
+                            @(Model.IsActive ? "Deactivate" : "Activate")
+                        </button>
+                    </form>
+                    <a asp-action="Index" asp-route-role="@Model.Role" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            @if (Model.Role == "Student" && enrollments != null)
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Enrollment History (@enrollments.Count)</h5>
+                        <a asp-controller="Enrollment" asp-action="AddStudent"
+                           asp-route-courseId=""
+                           class="btn btn-sm btn-success"
+                           onclick="event.preventDefault(); openEnrollModal(@Model.UserId, '@Model.FullName.Replace("'","\\'")')">
+                            <i class="bi bi-plus-circle"></i> Enroll in Course
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        @if (enrollments.Any())
+                        {
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Enrolled</th>
+                                        <th>Status</th>
+                                        <th>Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var e in enrollments)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@e.Course?.CourseName</strong><br />
+                                                <small class="text-muted">@e.Course?.CourseCode</small>
+                                            </td>
+                                            <td><small>@e.EnrollmentDate.ToString("MMM dd, yyyy")</small></td>
+                                            <td><span class="badge status-@e.Status.ToLower()">@e.Status</span></td>
+                                            <td>
+                                                @if (e.FinalGrade.HasValue)
+                                                {
+                                                    <span>@e.FinalGrade.Value.ToString("F1")% @e.LetterGrade</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">—</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-inbox" style="font-size:2rem;"></i>
+                                <p class="mt-2 mb-0">No enrollments yet.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (Model.Role == "Lecturer" && courses != null)
+            {
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Assigned Courses (@courses.Count)</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        @if (courses.Any())
+                        {
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Course</th>
+                                        <th>Code</th>
+                                        <th>Credits</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var c in courses)
+                                    {
+                                        <tr>
+                                            <td>@c.CourseName</td>
+                                            <td><span class="badge bg-info">@c.CourseCode</span></td>
+                                            <td>@c.Credits</td>
+                                            <td>
+                                                <span class="badge @(c.IsActive ? "bg-success" : "bg-secondary")">
+                                                    @(c.IsActive ? "Active" : "Inactive")
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-book" style="font-size:2rem;"></i>
+                                <p class="mt-2 mb-0">No courses assigned.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@* Enroll modal (only for Student details page) *@
+@if (Model.Role == "Student")
+{
+    <div class="modal fade" id="enrollModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-book-half"></i> Enroll Student in Course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-controller="Enrollment" asp-action="AddStudentFromAdmin" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="studentId" id="modalStudentId" value="@Model.UserId" />
+                    <div class="modal-body">
+                        <p>Enrolling: <strong>@Model.FullName</strong></p>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Select Course *</label>
+                            <select name="courseId" class="form-select" required>
+                                <option value="">-- Choose a course --</option>
+                                @foreach (var course in (ViewBag.AllCourses as List<Course> ?? new List<Course>()))
+                                {
+                                    <option value="@course.CourseId">@course.CourseName (@course.CourseCode)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Enroll
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openEnrollModal(studentId, studentName) {
+            document.getElementById('modalStudentId').value = studentId;
+            new bootstrap.Modal(document.getElementById('enrollModal')).show();
+        }
+    </script>
+}

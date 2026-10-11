@@ -1,0 +1,108 @@
+@model IEnumerable<Enrollment>
+@{
+    ViewData["Title"] = "Student Performance Report";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold"><i class="bi bi-trophy-fill"></i> Student Performance Report</h2>
+            <p class="text-muted">Student grades and performance analysis</p>
+        </div>
+    </div>
+
+    <div class="col-auto">
+        <a asp-action="ExportStudentPerformance" asp-route-courseId="@ViewBag.SelectedCourseId" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Export to Excel
+        </a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    <select name="courseId" class="form-select">
+                        <option value="">All Courses</option>
+                        @foreach (var course in ViewBag.Courses as List<Course>)
+                        {
+                            <option value="@course.CourseId">@course.CourseName (@course.CourseCode)</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Course</th>
+                                <th>Code</th>
+                                <th>Enrollment Date</th>
+                                <th>Final Grade</th>
+                                <th>Letter Grade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var enrollment in Model)
+                            {
+                                <tr>
+                                    <td>@enrollment.Student?.FullName</td>
+                                    <td>@enrollment.Course?.CourseName</td>
+                                    <td>@enrollment.Course?.CourseCode</td>
+                                    <td>@enrollment.EnrollmentDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        @if (enrollment.FinalGrade.HasValue)
+                                        {
+                                            var gradeClass = enrollment.FinalGrade >= 70 ? "success" : enrollment.FinalGrade >= 50 ? "warning" : "danger";
+                                            <span class="badge bg-@gradeClass">@enrollment.FinalGrade.Value.ToString("F1")%</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(enrollment.LetterGrade))
+                                        {
+                                            <strong>@enrollment.LetterGrade</strong>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">N/A</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge status-@enrollment.Status.ToLower()">@enrollment.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No graded enrollments found.
+        </div>
+    }
+    
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>

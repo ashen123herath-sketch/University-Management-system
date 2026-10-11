@@ -1,0 +1,323 @@
+@model Assignment
+@{
+    ViewData["Title"] = "Assignment Details";
+    var userRole = Context.Session.GetString("UserRole");
+    var userId = Context.Session.GetInt32("UserId");
+    bool isLecturerOrAdmin = userRole == "Lecturer" || userRole == "Administrator";
+
+    // Get student's submission if student is viewing
+    Submission? studentSubmission = null;
+    if (userRole == "Student" && Model.Submissions != null)
+    {
+        studentSubmission = Model.Submissions.FirstOrDefault(s => s.StudentId == userId);
+    }
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">@Model.Title</h2>
+            <p class="text-muted">@Model.Course?.CourseName</p>
+        </div>
+        @if (isLecturerOrAdmin)
+        {
+            <div class="col-auto">
+                <a asp-action="Edit" asp-route-id="@Model.AssignmentId" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit Assignment
+                </a>
+            </div>
+        }
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Assignment Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th width="200">Course:</th>
+                            <td>@Model.Course?.CourseName (@Model.Course?.CourseCode)</td>
+                        </tr>
+                        <tr>
+                            <th>Lecturer:</th>
+                            <td>@(Model.Course?.Lecturer?.FullName ?? "N/A")</td>
+                        </tr>
+                        <tr>
+                            <th>Due Date:</th>
+                            <td>
+                                @Model.DueDate.ToString("MMMM dd, yyyy h:mm tt")
+                                @if (Model.DueDate < DateTime.Now)
+                                {
+                                    <span class="badge bg-danger">Past Due</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Maximum Marks:</th>
+                            <td>@Model.MaxMarks points</td>
+                        </tr>
+                        <tr>
+                            <th>Created:</th>
+                            <td>@Model.CreatedDate.ToString("MMMM dd, yyyy")</td>
+                        </tr>
+                    </table>
+
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <h6 class="mt-4">Description</h6>
+                        <p>@Model.Description</p>
+                    }
+
+                    @* Assignment file attached by lecturer/admin *@
+                    @if (!string.IsNullOrEmpty(Model.FilePath))
+                    {
+                        <div class="alert alert-primary d-flex align-items-center justify-content-between mt-3">
+                            <div>
+                                <i class="bi bi-paperclip me-2"></i>
+                                <strong>Assignment File Attached</strong>
+                                @if (!string.IsNullOrEmpty(Model.FileType))
+                                {
+                                    <span class="badge bg-secondary ms-2">@Model.FileType.ToUpper().Replace(".", "")</span>
+                                }
+                            </div>
+                            <a asp-action="DownloadAssignmentFile" asp-route-id="@Model.AssignmentId"
+                               class="btn btn-sm btn-primary">
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @* Student's Submission Status *@
+            @if (userRole == "Student" && studentSubmission != null)
+            {
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0"><i class="bi bi-check-circle"></i> Your Submission</h5>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-borderless mb-0">
+                            <tr>
+                                <th width="200">Submitted:</th>
+                                <td>@studentSubmission.SubmissionDate.ToString("MMM dd, yyyy h:mm tt")</td>
+                            </tr>
+                            <tr>
+                                <th>Status:</th>
+                                <td><span class="badge status-@studentSubmission.Status.ToLower()">@studentSubmission.Status</span></td>
+                            </tr>
+                            @if (!string.IsNullOrEmpty(studentSubmission.FilePath))
+                            {
+                                <tr>
+                                    <th>Submitted File:</th>
+                                    <td>
+                                        <a asp-action="DownloadSubmissionFile" asp-route-id="@studentSubmission.SubmissionId"
+                                           class="btn btn-sm btn-outline-success">
+                                            <i class="bi bi-download"></i> Download Your File
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                            @if (studentSubmission.MarksObtained.HasValue)
+                            {
+                                var percentage = (studentSubmission.MarksObtained.Value / Model.MaxMarks * 100);
+                                var gradeClass = percentage >= 70 ? "success" : percentage >= 50 ? "warning" : "danger";
+
+                                <tr>
+                                    <th>Grade:</th>
+                                    <td>
+                                        <h4 class="mb-0">
+                                            <span class="badge bg-@gradeClass">
+                                                @studentSubmission.MarksObtained / @Model.MaxMarks (@percentage.ToString("F1")%)
+                                            </span>
+                                        </h4>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <th>Grade:</th>
+                                    <td>
+                                        <span class="badge bg-info">Pending Review</span>
+                                        <small class="text-muted d-block mt-1">Your submission is awaiting grading</small>
+                                    </td>
+                                </tr>
+                            }
+                            @if (!string.IsNullOrEmpty(studentSubmission.Feedback))
+                            {
+                                <tr>
+                                    <th>Lecturer Feedback:</th>
+                                    <td class="text-muted">@studentSubmission.Feedback</td>
+                                </tr>
+                            }
+                            @if (!string.IsNullOrEmpty(studentSubmission.Comments))
+                            {
+                                <tr>
+                                    <th>Your Comments:</th>
+                                    <td class="text-muted">@studentSubmission.Comments</td>
+                                </tr>
+                            }
+                        </table>
+                    </div>
+                </div>
+            }
+
+            @if (isLecturerOrAdmin && Model.Submissions != null && Model.Submissions.Any())
+            {
+                <div class="card shadow-sm mt-4">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">Submissions (@Model.Submissions.Count)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Submitted</th>
+                                        <th>Status</th>
+                                        <th>File</th>
+                                        <th>Grade</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var submission in Model.Submissions.OrderByDescending(s => s.SubmissionDate))
+                                    {
+                                        <tr>
+                                            <td>@submission.Student?.FullName</td>
+                                            <td>@submission.SubmissionDate.ToString("MMM dd, yyyy")</td>
+                                            <td><span class="badge status-@submission.Status.ToLower()">@submission.Status</span></td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(submission.FilePath))
+                                                {
+                                                    <a asp-action="DownloadSubmissionFile" asp-route-id="@submission.SubmissionId"
+                                                       class="btn btn-sm btn-outline-success" title="Download submission file">
+                                                        <i class="bi bi-download"></i>
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">No file</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                @if (submission.MarksObtained.HasValue)
+                                                {
+                                                    <span>@submission.MarksObtained/@Model.MaxMarks</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Not graded</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a asp-action="Grade" asp-route-id="@submission.SubmissionId"
+                                                   class="btn btn-sm btn-primary">Grade</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (isLecturerOrAdmin)
+            {
+                <div class="card shadow-sm mt-4">
+                    <div class="card-body text-center py-4">
+                        <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                        <p class="text-muted mt-2">No submissions yet for this assignment.</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h6 class="mb-3">Quick Actions</h6>
+                    @if (userRole == "Student")
+                    {
+                        @if (studentSubmission == null && Model.DueDate >= DateTime.Now)
+                        {
+                            <a asp-action="Submit" asp-route-id="@Model.AssignmentId"
+                               class="btn btn-primary w-100 mb-2">
+                                <i class="bi bi-upload"></i> Submit Assignment
+                            </a>
+                        }
+                        else if (studentSubmission != null)
+                        {
+                            <button class="btn btn-success w-100 mb-2" disabled>
+                                <i class="bi bi-check-circle"></i> Already Submitted
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary w-100 mb-2" disabled>
+                                <i class="bi bi-x-circle"></i> Submission Closed
+                            </button>
+                        }
+                    }
+                    @if (isLecturerOrAdmin)
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model.AssignmentId"
+                           class="btn btn-warning w-100 mb-2">
+                            <i class="bi bi-pencil"></i> Edit Assignment
+                        </a>
+                    }
+                    <a asp-controller="Course" asp-action="Details" asp-route-id="@Model.CourseId"
+                       class="btn btn-outline-primary w-100">
+                        <i class="bi bi-book"></i> View Course
+                    </a>
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">
+                        <i class="bi bi-arrow-left"></i> Back to Assignments
+                    </a>
+                </div>
+            </div>
+
+            @if (isLecturerOrAdmin && Model.Submissions != null)
+            {
+                <div class="card shadow-sm mt-3">
+                    <div class="card-body">
+                        <h6 class="mb-3">Submission Progress</h6>
+                        @{
+                            var totalSubmissions = Model.Submissions.Count;
+                            var gradedSubmissions = Model.Submissions.Count(s => s.MarksObtained.HasValue);
+                            var pendingSubmissions = totalSubmissions - gradedSubmissions;
+                        }
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small>Total Submissions</small>
+                            <strong>@totalSubmissions</strong>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-success">Graded</small>
+                            <strong class="text-success">@gradedSubmissions</strong>
+                        </div>
+                        <div class="mb-2 d-flex justify-content-between">
+                            <small class="text-warning">Pending</small>
+                            <strong class="text-warning">@pendingSubmissions</strong>
+                        </div>
+                        @if (totalSubmissions > 0)
+                        {
+                            var gradedPct = (gradedSubmissions * 100.0 / totalSubmissions);
+                            <div class="progress mt-2" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: @gradedPct%"></div>
+                            </div>
+                            <small class="text-muted">@gradedPct.ToString("F0")% graded</small>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

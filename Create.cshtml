@@ -1,0 +1,76 @@
+@model Assignment
+@{
+    ViewData["Title"] = "Create Assignment";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold mb-4">Create New Assignment</h2>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label asp-for="CourseId" class="form-label">Course *</label>
+                            <select asp-for="CourseId" class="form-select">
+                                <option value="">-- Select Course --</option>
+                                @foreach (var course in ViewBag.Courses as List<Course>)
+                                {
+                                    <option value="@course.CourseId">@course.CourseName (@course.CourseCode)</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CourseId" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Assignment Title *</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DueDate" class="form-label">Due Date *</label>
+                                <input asp-for="DueDate" type="datetime-local" class="form-control"
+                                       min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")"
+                                       value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-ddTHH:mm")" />
+                                <span asp-validation-for="DueDate" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MaxMarks" class="form-label">Maximum Marks *</label>
+                                <input asp-for="MaxMarks" type="number" class="form-control" min="0" max="100" value="100" />
+                                <span asp-validation-for="MaxMarks" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Attach File (Optional)</label>
+                            <input type="file" name="file" class="form-control" />
+                            <div class="form-text">Attach assignment instructions or resources (PDF, Word, ZIP, etc.)</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Create Assignment
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

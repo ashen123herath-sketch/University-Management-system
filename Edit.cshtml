@@ -1,0 +1,89 @@
+@model Assignment
+@{
+    ViewData["Title"] = "Edit Assignment";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold mb-4">Edit Assignment</h2>
+
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="AssignmentId" />
+                        <input type="hidden" asp-for="CourseId" />
+                        <input type="hidden" asp-for="IsActive" />
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Course</label>
+                            <input type="text" class="form-control" value="@Model.Course?.CourseName (@Model.Course?.CourseCode)" disabled />
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Title" class="form-label">Assignment Title *</label>
+                            <input asp-for="Title" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Description</label>
+                            <textarea asp-for="Description" class="form-control" rows="4"></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="DueDate" class="form-label">Due Date *</label>
+                                <input asp-for="DueDate" type="datetime-local" class="form-control"
+                                       value="@Model.DueDate.ToString("yyyy-MM-ddTHH:mm")" />
+                                <span asp-validation-for="DueDate" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="MaxMarks" class="form-label">Maximum Marks *</label>
+                                <input asp-for="MaxMarks" type="number" class="form-control" min="0" max="100" />
+                                <span asp-validation-for="MaxMarks" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Assignment File</label>
+                            @if (!string.IsNullOrEmpty(Model.FilePath))
+                            {
+                                <div class="alert alert-info py-2 mb-2 d-flex align-items-center justify-content-between">
+                                    <span>
+                                        <i class="bi bi-paperclip me-1"></i>
+                                        Current file attached
+                                        @if (!string.IsNullOrEmpty(Model.FileType))
+                                        {
+                                            <span class="badge bg-secondary ms-1">@Model.FileType.ToUpper().Replace(".", "")</span>
+                                        }
+                                    </span>
+                                    <a asp-action="DownloadAssignmentFile" asp-route-id="@Model.AssignmentId"
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-download"></i> Download
+                                    </a>
+                                </div>
+                            }
+                            <input type="file" name="file" class="form-control" />
+                            <div class="form-text">Upload a new file to replace the existing one. Leave empty to keep the current file.</div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Save Changes
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.AssignmentId" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

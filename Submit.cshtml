@@ -1,0 +1,65 @@
+@{
+    ViewData["Title"] = "Submit Assignment";
+    var assignment = ViewBag.Assignment as Assignment;
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold mb-4">Submit Assignment</h2>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5>@assignment.Title</h5>
+                    <p class="text-muted mb-1">Course: @assignment.Course?.CourseName</p>
+                    <p class="text-muted mb-1">Due: @assignment.DueDate.ToString("MMMM dd, yyyy h:mm tt")</p>
+                    <p class="text-muted mb-0">Max Marks: @assignment.MaxMarks</p>
+                    @if (!string.IsNullOrEmpty(assignment.FilePath))
+                    {
+                        <hr class="my-2" />
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-paperclip me-2 text-primary"></i>
+                            <span class="me-3">Assignment materials are available:</span>
+                            <a asp-controller="Assignment" asp-action="DownloadAssignmentFile"
+                               asp-route-id="@assignment.AssignmentId"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download"></i> Download Materials
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <form asp-action="Submit" asp-route-id="@assignment.AssignmentId" method="post"
+                          enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Upload File (Optional)</label>
+                            <input type="file" name="file" class="form-control" />
+                            <div class="form-text">Attach your assignment file (PDF, Word, ZIP, etc.)</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Comments / Notes (Optional)</label>
+                            <textarea name="comments" class="form-control" rows="5"
+                                      placeholder="Add any comments about your submission..."></textarea>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Submit Assignment
+                            </button>
+                            <a asp-action="Details" asp-route-id="@assignment.AssignmentId"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

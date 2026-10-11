@@ -1,0 +1,182 @@
+@model IEnumerable<User>
+@{
+    var role = ViewBag.Role as string ?? "Student";
+    ViewData["Title"] = $"Manage {role}s";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold">
+                <i class="bi bi-@(role == "Lecturer" ? "person-badge" : "mortarboard")"></i>
+                Manage @(role)s
+            </h2>
+            <p class="text-muted mb-0">
+                <span class="badge bg-success">@ViewBag.TotalActive Active</span>
+                <span class="badge bg-secondary ms-1">@ViewBag.TotalInactive Inactive</span>
+            </p>
+        </div>
+        <div class="col-auto d-flex gap-2">
+            <!-- Toggle between Lecturer / Student tabs -->
+            <a asp-action="Index" asp-route-role="Student"
+               class="btn @(role == "Student" ? "btn-primary" : "btn-outline-primary")">
+                <i class="bi bi-mortarboard"></i> Students
+            </a>
+            <a asp-action="Index" asp-route-role="Lecturer"
+               class="btn @(role == "Lecturer" ? "btn-primary" : "btn-outline-primary")">
+                <i class="bi bi-person-badge"></i> Lecturers
+            </a>
+            <a asp-action="Create" asp-route-role="@role" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Add @role
+            </a>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Department</th>
+                                <th>Registered</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model)
+                            {
+                                <tr class="@(!user.IsActive ? "table-secondary text-muted" : "")">
+                                    <td>
+                                        <strong>@user.FullName</strong>
+                                    </td>
+                                    <td>@user.Email</td>
+                                    <td>@(user.PhoneNumber ?? "—")</td>
+                                    <td>@(user.Department ?? "—")</td>
+                                    <td><small>@user.RegisteredDate.ToString("MMM dd, yyyy")</small></td>
+                                    <td>
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="badge bg-success">Active</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="Details" asp-route-id="@user.UserId"
+                                               class="btn btn-sm btn-outline-info" title="View Details">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Edit" asp-route-id="@user.UserId"
+                                               class="btn btn-sm btn-outline-warning" title="Edit">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            @if (role == "Student")
+                                            {
+                                                <a href="javascript:void(0)"
+                                                       class="btn btn-sm btn-outline-success"
+                                                       title="Enroll in Course"
+                                                       onclick="openEnrollModal(@user.UserId, '@user.FullName.Replace("'", "\\'")')">
+                                                    <i class="bi bi-book-half"></i>
+                                                </a>
+                                            }
+                                            <form asp-action="ToggleActive" asp-route-id="@user.UserId"
+                                                  method="post" class="d-inline"
+                                                  onsubmit="return confirm('@(user.IsActive ? "Deactivate" : "Activate") @user.FullName?')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit"
+                                                        class="btn btn-sm @(user.IsActive ? "btn-outline-secondary" : "btn-outline-success")"
+                                                        title="@(user.IsActive ? "Deactivate" : "Activate")">
+                                                    <i class="bi bi-@(user.IsActive ? "person-dash" : "person-check")"></i>
+                                                </button>
+                                            </form>
+                                            <form asp-action="Delete" asp-route-id="@user.UserId"
+                                                  method="post" class="d-inline"
+                                                  onsubmit="return confirm('Permanently delete @user.FullName? This cannot be undone.')">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-people" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h4 class="mt-3 text-muted">No @(role)s Found</h4>
+                <p class="text-muted">No @(role.ToLower())s have been added yet.</p>
+                <a asp-action="Create" asp-route-role="@role" class="btn btn-success mt-2">
+                    <i class="bi bi-plus-circle"></i> Add First @role
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@* Quick enroll modal for students *@
+@if (role == "Student")
+{
+    <!-- Modal: pick a course to enroll the student in -->
+    <div class="modal fade" id="enrollModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-book-half"></i> Enroll Student in Course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form asp-controller="Enrollment" asp-action="AddStudentFromAdmin" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="studentId" id="modalStudentId" />
+                    <div class="modal-body">
+                        <p>Enrolling: <strong id="modalStudentName"></strong></p>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Select Course *</label>
+                            <select name="courseId" class="form-select" required>
+                                <option value="">-- Choose a course --</option>
+                                @foreach (var course in (ViewBag.AllCourses as List<Course> ?? new List<Course>()))
+                                {
+                                    <option value="@course.CourseId">@course.CourseName (@course.CourseCode)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Enroll
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function openEnrollModal(studentId, studentName) {
+            document.getElementById('modalStudentId').value = studentId;
+            document.getElementById('modalStudentName').textContent = studentName;
+            new bootstrap.Modal(document.getElementById('enrollModal')).show();
+        }
+    </script>
+}

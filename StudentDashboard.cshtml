@@ -1,0 +1,315 @@
+@model StudentDashboardViewModel
+@{
+    ViewData["Title"] = "Student Dashboard";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">
+                <i class="bi bi-speedometer2"></i> Welcome, @Model.Student?.FullName!
+            </h2>
+            <p class="text-muted">Here's your academic overview</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card primary h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="dashboard-label mb-1">Enrolled Courses</p>
+                            <h3 class="dashboard-stat mb-0">@Model.TotalEnrollments</h3>
+                        </div>
+                        <i class="bi bi-book-fill text-primary" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card warning h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="dashboard-label mb-1">Pending Assignments</p>
+                            <h3 class="dashboard-stat mb-0" style="color: #ffc107;">@Model.PendingAssignments</h3>
+                        </div>
+                        <i class="bi bi-file-earmark-text-fill text-warning" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card success h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="dashboard-label mb-1">Average Grade</p>
+                            <h3 class="dashboard-stat mb-0" style="color: #198754;">@Model.AverageGrade.ToString("F1")%</h3>
+                        </div>
+                        <i class="bi bi-graph-up-arrow text-success" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card stat-card info h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="dashboard-label mb-1">Unread Messages</p>
+                            <h3 class="dashboard-stat mb-0" style="color: #0dcaf0;">@Model.UnreadMessages</h3>
+                        </div>
+                        <i class="bi bi-envelope-fill text-info" style="font-size: 3rem; opacity: 0.3;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Enrolled Courses -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-book"></i> My Enrolled Courses
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.EnrolledCourses != null && Model.EnrolledCourses.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var enrollment in Model.EnrolledCourses.Take(5))
+                            {
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">@enrollment.Course?.CourseName</h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-person"></i> @enrollment.Course?.Lecturer?.FullName
+                                                | <i class="bi bi-code-square"></i> @enrollment.Course?.CourseCode
+                                            </small>
+                                            @if (enrollment.FinalGrade.HasValue)
+                                            {
+                                                <div class="mt-1">
+                                                    <span class="badge bg-success">
+                                                        Grade: @enrollment.FinalGrade.Value.ToString("F1")% (@enrollment.LetterGrade)
+                                                    </span>
+                                                </div>
+                                            }
+                                        </div>
+                                        <span class="badge status-@enrollment.Status.ToLower()">
+                                            @enrollment.Status
+                                        </span>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-controller="Course" asp-action="MyCourses" class="btn btn-outline-primary">
+                                View All Courses <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                            <p class="text-muted mt-3">You are not enrolled in any courses yet.</p>
+                            <a asp-controller="Enrollment" asp-action="Browse" class="btn btn-primary">
+                                <i class="bi bi-search"></i> Browse Courses
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Upcoming Assignments -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="bi bi-calendar-check"></i> Upcoming Assignments
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.UpcomingAssignments != null && Model.UpcomingAssignments.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var assignment in Model.UpcomingAssignments)
+                            {
+                                var daysUntilDue = (assignment.DueDate - DateTime.Now).Days;
+                                var urgencyClass = daysUntilDue <= 2 ? "danger" : (daysUntilDue <= 5 ? "warning" : "info");
+                                
+                                <div class="list-group-item px-0">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">@assignment.Title</h6>
+                                            <small class="text-muted">
+                                                <i class="bi bi-book"></i> @assignment.Course?.CourseName
+                                            </small>
+                                            <div class="mt-1">
+                                                <small class="text-@urgencyClass">
+                                                    <i class="bi bi-clock"></i> 
+                                                    Due: @assignment.DueDate.ToString("MMM dd, yyyy h:mm tt")
+                                                    (@daysUntilDue day@(daysUntilDue != 1 ? "s" : "") left)
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <a asp-controller="Assignment" asp-action="Submit" asp-route-id="@assignment.AssignmentId" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            Submit
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-controller="Assignment" asp-action="Index" class="btn btn-outline-primary">
+                                View All Assignments <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-5">
+                            <i class="bi bi-check-circle" style="font-size: 3rem; color: #198754;"></i>
+                            <p class="text-muted mt-3">No upcoming assignments at the moment!</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Submissions -->
+    @if (Model.RecentSubmissions != null && Model.RecentSubmissions.Any())
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-file-check"></i> Recent Submissions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Assignment</th>
+                                        <th>Course</th>
+                                        <th>Submitted</th>
+                                        <th>Status</th>
+                                        <th>Grade</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var submission in Model.RecentSubmissions.Take(5))
+                                    {
+                                        <tr>
+                                            <td>@submission.Assignment?.Title</td>
+                                            <td>@submission.Assignment?.Course?.CourseName</td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @submission.SubmissionDate.ToString("MMM dd, yyyy")
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <span class="badge status-@submission.Status.ToLower()">
+                                                    @submission.Status
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @if (submission.MarksObtained.HasValue)
+                                                {
+                                                    <strong>@submission.MarksObtained.Value.ToString("F1")/@submission.Assignment?.MaxMarks</strong>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Pending</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <a asp-controller="Assignment" asp-action="Details" 
+                                                   asp-route-id="@submission.AssignmentId" 
+                                                   class="btn btn-sm btn-outline-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-center">
+                            <a asp-controller="Assignment" asp-action="MySubmissions" class="btn btn-outline-primary">
+                                View All Submissions <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Quick Actions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm bg-light">
+                <div class="card-body text-center py-4">
+                    <h5 class="mb-3">Quick Actions</h5>
+                    <div class="d-flex justify-content-center gap-2 flex-wrap">
+                        <a asp-controller="Enrollment" asp-action="Browse" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Browse Courses
+                        </a>
+                        <a asp-controller="Assignment" asp-action="Index" class="btn btn-success">
+                            <i class="bi bi-file-earmark-text"></i> View Assignments
+                        </a>
+                        <a asp-controller="Message" asp-action="Compose" class="btn btn-info text-white">
+                            <i class="bi bi-envelope"></i> Send Message
+                        </a>
+                        <a asp-controller="Account" asp-action="Profile" class="btn btn-secondary">
+                            <i class="bi bi-person"></i> My Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Section -->
+    @* <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-envelope"></i> Messages
+                        </h5>
+                        <div>
+                            <a asp-controller="Message" asp-action="Compose" class="btn btn-sm btn-primary me-1">
+                                <i class="bi bi-pencil"></i> Compose
+                            </a>
+                            <a asp-controller="Message" asp-action="Index" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-inbox"></i> Inbox
+                            </a>
+                            <a asp-controller="Message" asp-action="Sent" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-send"></i> Sent Messages
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> *@
+</div>

@@ -1,0 +1,103 @@
+@model IEnumerable<Enrollment>
+@{
+    ViewData["Title"] = "Course Students";
+    var course = ViewBag.Course as Course;
+}
+
+<div class="container py-4">
+    @* <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold"><i class="bi bi-people"></i> Students Enrolled</h2>
+            <p class="text-muted">@course?.CourseName (@course?.CourseCode)</p>
+        </div>
+    </div> *@
+
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold"><i class="bi bi-people"></i> Students Enrolled</h2>
+            <p class="text-muted">@course?.CourseName (@course?.CourseCode)</p>
+        </div>
+        <div class="col-auto">
+            <a asp-action="AddStudent" asp-route-courseId="@course?.CourseId" class="btn btn-success">
+                <i class="bi bi-person-plus"></i> Add Student
+            </a>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Student Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Enrollment Date</th>
+                                <th>Status</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                var index = 1;
+                            }
+                            @foreach (var enrollment in Model)
+                            {
+                                <tr>
+                                    <td>@index</td>
+                                    <td><strong>@enrollment.Student?.FullName</strong></td>
+                                    <td>@enrollment.Student?.Email</td>
+                                    <td>@enrollment.Student?.Department</td>
+                                    <td>@enrollment.EnrollmentDate.ToString("MMM dd, yyyy")</td>
+                                    <td>
+                                        <span class="badge status-@enrollment.Status.ToLower()">
+                                            @enrollment.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (enrollment.FinalGrade.HasValue)
+                                        {
+                                            <span class="badge bg-success">
+                                                @enrollment.FinalGrade.Value.ToString("F1")% (@enrollment.LetterGrade)
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not graded</span>
+                                        }
+                                    </td>
+                                </tr>
+                                index++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-3">
+                    <p class="mb-0">
+                        <strong>Total Students:</strong> @Model.Count() | 
+                        <strong>Active:</strong> @Model.Count(e => e.Status == "Active") | 
+                        <strong>Completed:</strong> @Model.Count(e => e.Status == "Completed") | 
+                        <strong>Dropped:</strong> @Model.Count(e => e.Status == "Dropped")
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No students enrolled in this course yet.
+        </div>
+    }
+    
+    <div class="mt-3">
+        <a asp-controller="Course" asp-action="Details" asp-route-id="@course?.CourseId" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to Course
+        </a>
+    </div>
+</div>

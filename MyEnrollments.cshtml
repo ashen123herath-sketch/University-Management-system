@@ -1,0 +1,65 @@
+@model IEnumerable<Enrollment>
+@{
+    ViewData["Title"] = "My Enrollments";
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-list-check"></i> My Enrollments</h2>
+    
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Code</th>
+                        <th>Lecturer</th>
+                        <th>Enrolled Date</th>
+                        <th>Status</th>
+                        <th>Grade</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var enrollment in Model)
+                    {
+                        <tr>
+                            <td>@enrollment.Course?.CourseName</td>
+                            <td>@enrollment.Course?.CourseCode</td>
+                            <td>@enrollment.Course?.Lecturer?.FullName</td>
+                            <td>@enrollment.EnrollmentDate.ToString("MMM dd, yyyy")</td>
+                            <td><span class="badge status-@enrollment.Status.ToLower()">@enrollment.Status</span></td>
+                            <td>
+                                @if (enrollment.FinalGrade.HasValue)
+                                {
+                                    <span>@enrollment.FinalGrade.Value.ToString("F1")% (@enrollment.LetterGrade)</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">N/A</span>
+                                }
+                            </td>
+                            <td>
+                                <a asp-controller="Course" asp-action="Details" asp-route-id="@enrollment.CourseId" 
+                                   class="btn btn-sm btn-outline-info">View</a>
+                                @if (enrollment.Status == "Active")
+                                {
+                                    <form asp-action="Drop" method="post" class="d-inline" onsubmit="return confirm('Drop this course?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="enrollmentId" value="@enrollment.EnrollmentId" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Drop</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">You have no enrollments yet.</div>
+    }
+</div>

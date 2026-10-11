@@ -1,0 +1,123 @@
+@model IEnumerable<Course>
+@{
+    ViewData["Title"] = "Browse Courses";
+    var enrolledIds = ViewBag.EnrolledCourseIds as List<int> ?? new List<int>();
+    var hasActiveEnrollment = ViewBag.HasActiveEnrollment as bool? ?? false;
+}
+
+<div class="container py-4">
+    <h2 class="fw-bold mb-4"><i class="bi bi-search"></i> Browse Available Courses</h2>
+
+    @if (hasActiveEnrollment)
+    {
+        <div class="alert alert-warning d-flex align-items-start gap-3 mb-4">
+            <i class="bi bi-exclamation-triangle-fill fs-4 mt-1 text-warning"></i>
+            <div>
+                <strong>You are currently enrolled in an active course.</strong><br />
+                You must complete your current course before enrolling in another one.
+                Visit <a asp-action="MyEnrollments" class="alert-link">My Enrollments</a> to view your current course.
+            </div>
+        </div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-5">
+                    <select name="department" class="form-select">
+                        <option value="">All Departments</option>
+                        @foreach (var dept in ViewBag.Departments as List<string>)
+                        {
+                            <option value="@dept" selected="@(Context.Request.Query["department"] == dept ? "selected" : null)">@dept</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-5">
+                    <select name="semester" class="form-select">
+                        <option value="">All Semesters</option>
+                        @foreach (var sem in ViewBag.Semesters as List<string>)
+                        {
+                            <option value="@sem" selected="@(Context.Request.Query["semester"] == sem ? "selected" : null)">@sem</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var course in Model)
+            {
+                var isEnrolled = enrolledIds.Contains(course.CourseId);
+                var enrollmentCount = course.Enrollments?.Count(e => e.Status == "Active") ?? 0;
+                var isFull = enrollmentCount >= course.MaxStudents;
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0">@course.CourseName</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <span class="badge bg-info">@course.CourseCode</span>
+                                <span class="badge bg-success">@course.Credits Credits</span>
+                            </div>
+                            <p class="small mb-1">
+                                <strong>Lecturer:</strong> @course.Lecturer?.FullName
+                            </p>
+                            <p class="small mb-1">
+                                <strong>Seats:</strong> @enrollmentCount/@course.MaxStudents
+                                @{
+                                    var percentFull = course.MaxStudents > 0 ? (enrollmentCount * 100.0 / course.MaxStudents) : 0;
+                                }
+                                <span class="badge @(percentFull >= 90 ? "bg-danger" : percentFull >= 70 ? "bg-warning" : "bg-success")">
+                                    @percentFull.ToString("F0")% Full
+                                </span>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-white">
+                            @if (isEnrolled)
+                            {
+                                <button class="btn btn-success w-100" disabled>
+                                    <i class="bi bi-check-circle"></i> Enrolled
+                                </button>
+                            }
+                            else if (isFull)
+                            {
+                                <button class="btn btn-secondary w-100" disabled>
+                                    <i class="bi bi-x-circle"></i> Full
+                                </button>
+                            }
+                            else if (hasActiveEnrollment)
+                            {
+                                <button class="btn btn-warning w-100" disabled
+                                        title="Complete your current course first">
+                                    <i class="bi bi-lock"></i> Complete Current Course First
+                                </button>
+                            }
+                            else
+                            {
+                                <form asp-action="Enroll" method="post" class="d-inline w-100">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="courseId" value="@course.CourseId" />
+                                    <button type="submit" class="btn btn-primary w-100">
+                                        <i class="bi bi-plus-circle"></i> Enroll Now
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">No courses found matching your criteria.</div>
+    }
+</div>

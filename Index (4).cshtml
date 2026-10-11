@@ -1,0 +1,133 @@
+@model IEnumerable<Course>
+@{
+    ViewData["Title"] = "Courses";
+    var userRole = Context.Session.GetString("UserRole");
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold">
+                <i class="bi bi-book"></i> 
+                @(userRole == "Administrator" ? "Manage Courses" : userRole == "Lecturer" ? "My Courses" : "Courses")
+            </h2>
+        </div>
+        @if (userRole == "Administrator")
+        {
+            <div class="col-auto">
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New Course
+                </a>
+            </div>
+        }
+    </div>
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var course in Model)
+            {
+                var enrollmentCount = course.Enrollments?.Count(e => e.Status == "Active") ?? 0;
+                var percentageFull = course.MaxStudents > 0 ? (enrollmentCount * 100.0 / course.MaxStudents) : 0;
+                var statusColor = percentageFull >= 90 ? "danger" : percentageFull >= 70 ? "warning" : "success";
+                
+                <div class="col-md-6 col-lg-4">
+                    <div class="card course-card h-100 shadow-sm">
+                        <div class="card-header course-card-header">
+                            <h5 class="mb-0 text-white">@course.CourseName</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <span class="badge bg-primary">@course.CourseCode</span>
+                                <span class="badge bg-info">@course.Credits Credits</span>
+                                @if (course.IsActive)
+                                {
+                                    <span class="badge bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Inactive</span>
+                                }
+                            </div>
+
+                            <p class="text-muted small mb-2">
+                                <i class="bi bi-building"></i> <strong>Department:</strong> @course.Department<br>
+                                @if (!string.IsNullOrEmpty(course.Semester))
+                                {
+                                    <i class="bi bi-calendar3"></i> <strong>Semester:</strong> @course.Semester<br>
+                                }
+                                <i class="bi bi-person"></i> <strong>Lecturer:</strong> @(course.Lecturer?.FullName ?? "Not Assigned")
+                            </p>
+
+                            @if (!string.IsNullOrEmpty(course.Description))
+                            {
+                                <p class="small text-muted">
+                                    @(course.Description.Length > 100 ? course.Description.Substring(0, 100) + "..." : course.Description)
+                                </p>
+                            }
+
+                            <div class="mb-2">
+                                <div class="d-flex justify-content-between small mb-1">
+                                    <span>Enrollment</span>
+                                    <span>@enrollmentCount / @course.MaxStudents</span>
+                                </div>
+                                <div class="progress" style="height: 8px;">
+                                    <div class="progress-bar bg-@statusColor" style="width: @percentageFull%"></div>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(course.Prerequisites))
+                            {
+                                <small class="text-muted">
+                                    <i class="bi bi-exclamation-circle"></i> Prerequisites: @course.Prerequisites
+                                </small>
+                            }
+                        </div>
+                        <div class="card-footer bg-white">
+                            <div class="d-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@course.CourseId" 
+                                   class="btn btn-sm btn-outline-info flex-fill">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                                @if (userRole == "Administrator")
+                                {
+                                    <a asp-action="Edit" asp-route-id="@course.CourseId" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a asp-action="Delete" asp-route-id="@course.CourseId" 
+                                       class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                }
+                                else if (userRole == "Lecturer")
+                                {
+                                    <a asp-controller="Enrollment" asp-action="CourseStudents" asp-route-id="@course.CourseId" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-people"></i>
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+                <h4 class="mt-3 text-muted">No courses found</h4>
+                @if (userRole == "Administrator")
+                {
+                    <p class="text-muted">Start by creating your first course</p>
+                    <a asp-action="Create" class="btn btn-primary mt-2">
+                        <i class="bi bi-plus-circle"></i> Create Course
+                    </a>
+                }
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,72 @@
+@model dynamic
+@{
+    ViewData["Title"] = "Lecturer Workload Report";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold"><i class="bi bi-people-fill"></i> Lecturer Workload Report</h2>
+            <p class="text-muted">Teaching assignments and workload analysis</p>
+        </div>
+    </div>
+
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Lecturer</th>
+                                <th>Department</th>
+                                <th>Total Courses</th>
+                                <th>Total Students</th>
+                                <th>Total Assignments</th>
+                                <th>Pending Grading</th>
+                                <th>Workload Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var workloadScore = item.TotalCourses * 10 + item.TotalStudents + item.PendingGrading * 2;
+                                var workloadClass = workloadScore > 100 ? "danger" : workloadScore > 50 ? "warning" : "success";
+                                var workloadText = workloadScore > 100 ? "High" : workloadScore > 50 ? "Medium" : "Low";
+                                
+                                <tr>
+                                    <td><strong>@item.Lecturer.FullName</strong></td>
+                                    <td>@item.Lecturer.Department</td>
+                                    <td><span class="badge bg-primary">@item.TotalCourses</span></td>
+                                    <td><span class="badge bg-info">@item.TotalStudents</span></td>
+                                    <td><span class="badge bg-success">@item.TotalAssignments</span></td>
+                                    <td><span class="badge bg-warning">@item.PendingGrading</span></td>
+                                    <td><span class="badge bg-@workloadClass">@workloadText</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> No lecturer data available.
+        </div>
+    }
+    
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+
+    <div class="col-auto">
+        <a asp-action="ExportLecturerWorkload" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Export to Excel
+        </a>
+    </div>
+</div>

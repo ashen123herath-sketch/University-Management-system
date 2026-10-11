@@ -1,0 +1,53 @@
+﻿@model CourseMaterial
+@{
+    ViewData["Title"] = "Material Details";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> @Model.Title
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Course</dt>
+                        <dd class="col-sm-9">@Model.Course?.CourseName</dd>
+
+                        <dt class="col-sm-3">Description</dt>
+                        <dd class="col-sm-9">@(Model.Description ?? "No description provided")</dd>
+
+                        <dt class="col-sm-3">Uploaded By</dt>
+                        <dd class="col-sm-9">@Model.Uploader?.FullName</dd>
+
+                        <dt class="col-sm-3">Upload Date</dt>
+                        <dd class="col-sm-9">@Model.UploadedDate.ToString("MMMM dd, yyyy hh:mm tt")</dd>
+
+                        @if (!string.IsNullOrEmpty(Model.FileType))
+                        {
+                            <dt class="col-sm-3">File Type</dt>
+                            <dd class="col-sm-9">
+                                <span class="badge bg-secondary">@Model.FileType.ToUpper()</span>
+                            </dd>
+                        }
+                    </dl>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a asp-action="Index" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to List
+                        </a>
+                        @if (!string.IsNullOrEmpty(Model.FilePath))
+                        {
+                            <a asp-action="Download" asp-route-id="@Model.MaterialId" class="btn btn-success">
+                                <i class="bi bi-download"></i> Download File
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

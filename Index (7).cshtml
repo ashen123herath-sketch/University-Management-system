@@ -1,0 +1,196 @@
+@model IEnumerable<CourseMaterial>
+@{
+    ViewData["Title"] = "Course Materials";
+    var selectedCourseId = ViewBag.SelectedCourseId as int?;
+    var userRole = Context.Session.GetString("UserRole");
+    bool canUpload = userRole == "Lecturer" || userRole == "Administrator";
+    bool canDelete = canUpload;
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col">
+            <h2 class="fw-bold">
+                <i class="bi bi-file-earmark-text"></i> Course Materials
+            </h2>
+            @if (selectedCourseId.HasValue && ViewBag.Courses != null)
+            {
+                var selectedCourse = (ViewBag.Courses as List<Course>)?.FirstOrDefault(c => c.CourseId == selectedCourseId.Value);
+                if (selectedCourse != null)
+                {
+                    <p class="text-muted">Showing materials for: <strong>@selectedCourse.CourseName</strong></p>
+                }
+            }
+        </div>
+        @if (canUpload)
+        {
+            <div class="col-auto">
+                <a asp-action="Create" asp-route-courseId="@selectedCourseId" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Upload Material
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Filter -->
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <label for="courseFilter" class="form-label fw-bold">Filter by Course:</label>
+            <select class="form-select" id="courseFilter" onchange="filterByCourse()">
+                <option value="">All Courses</option>
+                @if (ViewBag.Courses != null)
+                {
+                    foreach (var course in ViewBag.Courses as List<Course>)
+                    {
+                        <option value="@course.CourseId" selected="@(course.CourseId == selectedCourseId)">
+                            @course.CourseCode - @course.CourseName
+                        </option>
+                    }
+                }
+            </select>
+        </div>
+        @if (selectedCourseId.HasValue)
+        {
+            <div class="col-md-6 d-flex align-items-end">
+                <a asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Clear Filter
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- Materials List -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Course</th>
+                                        <th>Description</th>
+                                        <th>Uploaded By</th>
+                                        <th>Upload Date</th>
+                                        <th>File Type</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var material in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <i class="bi bi-file-earmark"></i>
+                                                <strong>@material.Title</strong>
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">@material.Course?.CourseCode</small><br />
+                                                @material.Course?.CourseName
+                                            </td>
+                                            <td>
+                                                <small class="text-muted">
+                                                    @(string.IsNullOrEmpty(material.Description)
+                                                        ? "No description"
+                                                        : (material.Description.Length > 50
+                                                            ? material.Description.Substring(0, 50) + "..."
+                                                            : material.Description))
+                                                </small>
+                                            </td>
+                                            <td>@material.Uploader?.FullName</td>
+                                            <td>
+                                                <small>@material.UploadedDate.ToString("MMM dd, yyyy")</small>
+                                            </td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(material.FileType))
+                                                {
+                                                    <span class="badge bg-secondary">@material.FileType.ToUpper().Replace(".", "")</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted small">No file</span>
+                                                }
+                                            </td>
+                                            <td>
+                                                <div class="btn-group" role="group">
+                                                    @if (!string.IsNullOrEmpty(material.FilePath))
+                                                    {
+                                                        <a asp-action="Download" asp-route-id="@material.MaterialId"
+                                                           class="btn btn-sm btn-success" title="Download">
+                                                            <i class="bi bi-download"></i>
+                                                        </a>
+                                                    }
+                                                    <a asp-action="Details" asp-route-id="@material.MaterialId"
+                                                       class="btn btn-sm btn-info" title="Details">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                    @if (canDelete)
+                                                    {
+                                                        <form asp-action="Delete" asp-route-id="@material.MaterialId"
+                                                              method="post" class="d-inline"
+                                                              onsubmit="return confirm('Are you sure you want to delete this material?');">
+                                                            @Html.AntiForgeryToken()
+                                                            <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-inbox" style="font-size: 4rem; color: #dee2e6;"></i>
+                @if (selectedCourseId.HasValue)
+                {
+                    <h4 class="mt-3 text-muted">No Materials for This Course</h4>
+                    <p class="text-muted">No materials have been uploaded for the selected course yet.</p>
+                    @if (canUpload)
+                    {
+                        <a asp-action="Create" asp-route-courseId="@selectedCourseId" class="btn btn-primary mt-2">
+                            <i class="bi bi-plus-circle"></i> Upload First Material
+                        </a>
+                    }
+                }
+                else
+                {
+                    <h4 class="mt-3 text-muted">No Course Materials</h4>
+                    <p class="text-muted">No materials have been uploaded yet.</p>
+                    @if (canUpload)
+                    {
+                        <a asp-action="Create" class="btn btn-primary mt-2">
+                            <i class="bi bi-plus-circle"></i> Upload Material
+                        </a>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        function filterByCourse() {
+            const courseId = document.getElementById('courseFilter').value;
+            if (courseId) {
+                window.location.href = '@Url.Action("Index")?courseId=' + courseId;
+            } else {
+                window.location.href = '@Url.Action("Index")';
+            }
+        }
+    </script>
+}

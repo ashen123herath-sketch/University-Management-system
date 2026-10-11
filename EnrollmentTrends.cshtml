@@ -1,0 +1,97 @@
+@{
+    ViewData["Title"] = "Enrollment Trends";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold"><i class="bi bi-graph-up-arrow"></i> Enrollment Trends</h2>
+            <p class="text-muted">Enrollment patterns and statistics</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Monthly Trends -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Monthly Enrollment Trends</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.MonthlyData != null && ViewBag.MonthlyData.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Month</th>
+                                        <th>Total</th>
+                                        <th>Active</th>
+                                        <th>Completed</th>
+                                        <th>Dropped</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var data in ViewBag.MonthlyData)
+                                    {
+                                        <tr>
+                                            <td>@data.Month</td>
+                                            <td><span class="badge bg-primary">@data.Count</span></td>
+                                            <td><span class="badge bg-success">@data.Active</span></td>
+                                            <td><span class="badge bg-info">@data.Completed</span></td>
+                                            <td><span class="badge bg-secondary">@data.Dropped</span></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No monthly data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Department Distribution -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Enrollments by Department</h5>
+                </div>
+                <div class="card-body">
+                    @if (ViewBag.DepartmentData != null && ViewBag.DepartmentData.Count > 0)
+                    {
+                        @foreach (var dept in ViewBag.DepartmentData)
+                        {
+                            var departmentData = ViewBag.DepartmentData as IEnumerable<dynamic>;
+                            var total = departmentData.Sum(d => (int)d.Count);
+                            var percentage = total > 0 ? (dept.Count * 100.0 / total) : 0;
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <strong>@dept.Department</strong>
+                                    <span>@dept.Count enrollments (@percentage.ToString("F1")%)</span>
+                                </div>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-primary" style="width: @percentage%"></div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No department data available</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Reports
+        </a>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+@model Course
+@{
+    ViewData["Title"] = "Delete Course";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-6 mx-auto">
+            <div class="alert alert-danger">
+                <h4><i class="bi bi-exclamation-triangle"></i> Confirm Delete</h4>
+                <p>Are you sure you want to delete this course?</p>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5>@Model.CourseName</h5>
+                    <p class="text-muted mb-1">Course Code: @Model.CourseCode</p>
+                    <p class="text-muted mb-1">Department: @Model.Department</p>
+                    <p class="text-muted">Lecturer: @(Model.Lecturer?.FullName ?? "Not Assigned")</p>
+                    
+                    <form asp-action="Delete" method="post" class="mt-4">
+                        <input type="hidden" asp-for="CourseId" />
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-trash"></i> Yes, Delete Course
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

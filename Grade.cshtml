@@ -1,0 +1,114 @@
+@model Submission
+@{
+    ViewData["Title"] = "Grade Submission";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold mb-4"><i class="bi bi-clipboard-check"></i> Grade Assignment Submission</h2>
+
+            <!-- Submission Details -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Submission Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless mb-0">
+                        <tr>
+                            <th width="200">Student:</th>
+                            <td>@Model.Student?.FullName</td>
+                        </tr>
+                        <tr>
+                            <th>Assignment:</th>
+                            <td>@Model.Assignment?.Title</td>
+                        </tr>
+                        <tr>
+                            <th>Course:</th>
+                            <td>@Model.Assignment?.Course?.CourseName</td>
+                        </tr>
+                        <tr>
+                            <th>Submitted:</th>
+                            <td>@Model.SubmissionDate.ToString("MMMM dd, yyyy h:mm tt")</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge status-@Model.Status.ToLower()">@Model.Status</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Maximum Marks:</th>
+                            <td><strong>@Model.Assignment?.MaxMarks points</strong></td>
+                        </tr>
+                        @if (!string.IsNullOrEmpty(Model.FilePath))
+                        {
+                            <tr>
+                                <th>Submitted File:</th>
+                                <td>
+                                    <a asp-action="DownloadSubmissionFile" asp-route-id="@Model.SubmissionId"
+                                       class="btn btn-sm btn-success">
+                                        <i class="bi bi-download"></i> Download Student's File
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <th>Submitted File:</th>
+                                <td><span class="text-muted">No file attached</span></td>
+                            </tr>
+                        }
+                    </table>
+
+                    @if (!string.IsNullOrEmpty(Model.Comments))
+                    {
+                        <hr>
+                        <h6>Student Comments:</h6>
+                        <p class="text-muted">@Model.Comments</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Grading Form -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Grade This Submission</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Grade" asp-route-id="@Model.SubmissionId" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">Marks Obtained * (out of @Model.Assignment?.MaxMarks)</label>
+                            <input type="number" name="marksObtained" class="form-control form-control-lg"
+                                   min="0" max="@Model.Assignment?.MaxMarks" step="0.5"
+                                   value="@Model.MarksObtained" required />
+                            <small class="text-muted">Enter a value between 0 and @Model.Assignment?.MaxMarks</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Feedback (Optional)</label>
+                            <textarea name="feedback" class="form-control" rows="5"
+                                      placeholder="Provide feedback to the student...">@Model.Feedback</textarea>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Note:</strong> The student will be able to see the grade and feedback once you submit.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-check-circle"></i> Submit Grade
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.AssignmentId"
+                               class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

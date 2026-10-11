@@ -1,0 +1,77 @@
+@model IEnumerable<Message>
+@{
+    ViewData["Title"] = "Inbox";
+}
+
+<div class="container py-4">
+    @* <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold"><i class="bi bi-envelope"></i> Inbox</h2>
+        </div>
+        <div class="col-auto">
+            <a asp-action="Compose" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Compose
+            </a>
+        </div>
+    </div> *@
+
+    <!-- Messages Section -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="bi bi-envelope"></i> Messages
+                        </h5>
+                        <div>
+                            <a asp-controller="Message" asp-action="Compose" class="btn btn-sm btn-primary me-1">
+                                <i class="bi bi-pencil"></i> Compose
+                            </a>
+                            <a asp-controller="Message" asp-action="Index" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-inbox"></i> Inbox
+                            </a>
+                            <a asp-controller="Message" asp-action="Sent" class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-send"></i> Sent Messages
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var message in Model)
+                    {
+                        <a asp-action="Details" asp-route-id="@message.MessageId" 
+                           class="list-group-item list-group-item-action message-@(message.IsRead ? "read" : "unread")">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">@message.Sender?.FullName</h6>
+                                    <p class="mb-1">@message.Subject</p>
+                                    <small class="text-muted">@message.SentDate.ToString("MMM dd, yyyy h:mm tt")</small>
+                                </div>
+                                @if (!message.IsRead)
+                                {
+                                    <span class="badge bg-primary align-self-start">New</span>
+                                }
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                    <p class="text-muted mt-3">No messages in inbox</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

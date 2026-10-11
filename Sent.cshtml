@@ -1,0 +1,48 @@
+@model IEnumerable<Message>
+@{
+    ViewData["Title"] = "Sent Messages";
+}
+
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="fw-bold"><i class="bi bi-send"></i> Sent Messages</h2>
+        </div>
+        <div class="col-auto">
+            <a asp-action="Compose" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Compose
+            </a>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            @if (Model != null && Model.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var message in Model)
+                    {
+                        <a asp-action="Details" asp-route-id="@message.MessageId" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="mb-1">To: @message.Receiver?.FullName</h6>
+                                    <p class="mb-1"><strong>@message.Subject</strong></p>
+                                    <small class="text-muted">@message.SentDate.ToString("MMM dd, yyyy h:mm tt")</small>
+                                </div>
+                                <i class="bi bi-chevron-right"></i>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem; color: #dee2e6;"></i>
+                    <p class="text-muted mt-3">No sent messages</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

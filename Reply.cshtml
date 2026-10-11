@@ -1,0 +1,66 @@
+@model Message
+@{
+    ViewData["Title"] = "Reply to Message";
+    var originalMessage = ViewBag.OriginalMessage as Message;
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="fw-bold mb-4"><i class="bi bi-reply"></i> Reply to Message</h2>
+            
+            <!-- Original Message -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">Original Message</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>From:</strong> @originalMessage?.Sender?.FullName</p>
+                    <p class="mb-1"><strong>Subject:</strong> @originalMessage?.Subject</p>
+                    <p class="mb-1"><strong>Date:</strong> @originalMessage?.SentDate.ToString("MMM dd, yyyy h:mm tt")</p>
+                    <hr>
+                    <p class="text-muted">@originalMessage?.MessageBody</p>
+                </div>
+            </div>
+            
+            <!-- Reply Form -->
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Reply" asp-route-id="@originalMessage?.MessageId" method="post">
+                        <input type="hidden" asp-for="ReceiverId" />
+                        <input type="hidden" asp-for="Subject" />
+                        
+                        <div class="mb-3">
+                            <label class="form-label">To</label>
+                            <input type="text" class="form-control" value="@ViewBag.ReceiverName" readonly />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Subject</label>
+                            <input asp-for="Subject" class="form-control" readonly />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="MessageBody" class="form-label">Your Reply *</label>
+                            <textarea asp-for="MessageBody" class="form-control" rows="8" required></textarea>
+                            <span asp-validation-for="MessageBody" class="text-danger small"></span>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i> Send Reply
+                            </button>
+                            <a asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
